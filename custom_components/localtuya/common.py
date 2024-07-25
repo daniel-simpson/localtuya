@@ -340,6 +340,20 @@ class TuyaDevice(pytuya.TuyaListener, pytuya.ContextualLogger):
                 "Not connected to device %s", self._dev_config_entry[CONF_FRIENDLY_NAME]
             )
 
+    async def send_command(self, command):
+        """Send a generic command to a localtuya device."""
+        self.debug("Sending command %s to device: %s", command, self._dev_config_entry[CONF_DEVICE_ID])
+
+        if self._interface is not None:
+            try:
+                await self._interface.set_dps(command)
+            except Exception:
+                self.exception("Failed to send command %r", command)
+        else:
+            self.error(
+                "Not connected to device %s", self._dev_config_entry[CONF_FRIENDLY_NAME]
+            )
+
     @callback
     def status_updated(self, status):
         """Device updated status."""

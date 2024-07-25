@@ -62,6 +62,13 @@ SERVICE_SET_DP_SCHEMA = vol.Schema(
     }
 )
 
+SERVICE_SEND_COMMAND = "send_command"
+SERVICE_SEND_COMMAND_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): cv.string,
+        vol.Required(CONF_VALUE): object,
+    }
+)
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the LocalTuya integration component."""
@@ -94,6 +101,18 @@ async def async_setup(hass: HomeAssistant, config: dict):
             raise HomeAssistantError("not connected to device")
 
         await device.set_dp(event.data[CONF_VALUE], event.data[CONF_DP])
+
+    async def _handle_send_command(event):
+        """Handle send_command service call."""
+        dev_id = event.data[CONF_DEVICE_ID]
+        if dev_id not in hass.data[DOMAIN][TUYA_DEVICES]:
+            raise HomeAssistantError("unknown device id")
+        
+        device = hass.data[DOMAIN][TUYA_DEVICES][dev_id]
+        if not device.connected:
+            raise HomeAssistantError("not connected to device")
+        
+        await device.send_command(event.data[CONF_VALUE])
 
     def _device_discovered(device):
         """Update address of device if it has changed."""
@@ -170,6 +189,10 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
     hass.services.async_register(
         DOMAIN, SERVICE_SET_DP, _handle_set_dp, schema=SERVICE_SET_DP_SCHEMA
+    )
+
+    hass.services.async_register(
+        DOMAIN, SERVICE_SEND_COMMAND, _handle_send_command, schema=SERVICE_SEND_COMMAND_SCHEMA
     )
 
     discovery = TuyaDiscovery(_device_discovered)

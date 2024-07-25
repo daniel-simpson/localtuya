@@ -13,3 +13,17 @@ set_dp:
     value:
       description: New value to set
       example: False
+
+send_command:
+  description: Send a command to a device
+  fields:
+    device_id:
+      description: Device ID of device to send command to
+      example: 11100118278aab4de001
+    value:
+      description: Command JSON
+      example: >
+        {
+          "code": "manual_feed",
+          "value": 1
+        }
